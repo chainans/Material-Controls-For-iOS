@@ -264,8 +264,16 @@
     return self.calendar.minimumDate;
 }
 
+- (NSDate*)maximumDate {
+    return self.calendar.maximumDate;
+}
+
 - (void)setMinimumDate:(NSDate *)minimumDate {
   self.calendar.minimumDate = minimumDate;
+}
+
+- (void)setMaximumDate:(NSDate *)maximumDate {
+    self.calendar.maximumDate = maximumDate;
 }
 
 - (void)deviceOrientationDidChange:(NSNotification *)notification {

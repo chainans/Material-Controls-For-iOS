@@ -168,6 +168,9 @@
       [[dictionary allKeys] containsObject:@(MDCalendarCellStateWeekend)]) {
     return dictionary[@(MDCalendarCellStateWeekend)];
   }
+  if (self.userInteractionEnabled == NO) {
+    return dictionary[@(MDCalendarCellStateDisabled)];
+  }
   return dictionary[@(MDCalendarCellStateNormal)];
 }
 

@@ -62,6 +62,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property(copy, nonatomic) NSDate *currentDate;
 @property(copy, nonatomic) NSDate *selectedDate;
+
+@property(copy, nonatomic) NSDate *maximumDate;
 @property(copy, nonatomic) NSDate *minimumDate;
 @property(copy, nonatomic) NSDate *currentMonth;
 

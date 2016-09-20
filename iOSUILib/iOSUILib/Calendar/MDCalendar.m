@@ -49,8 +49,6 @@
 @property(weak, nonatomic) UICollectionView *collectionView;
 @property(weak, nonatomic) UICollectionViewFlowLayout *collectionViewFlowLayout;
 
-@property(copy, nonatomic) NSDate *maximumDate;
-
 @property(nonatomic) MDCalendarCellStyle cellStyle;
 
 @property(weak, nonatomic) MDCalendarYearSelector *yearSelector;
@@ -147,12 +145,12 @@
   _cellStyle = MDCalendarCellStyleCircle;
 
   self.minimumDate = [NSDateHelper mdDateWithYear:1970 month:1 day:1];
-  _maximumDate = [NSDateHelper mdDateWithYear:2037 month:12 day:31];
+  self.maximumDate = [NSDateHelper mdDateWithYear:2037 month:12 day:31];
 
   MDCalendarYearSelector *yearSelector =
       [[MDCalendarYearSelector alloc] initWithFrame:self.collectionView.frame
                                     withMiniminDate:self.minimumDate
-                                     andMaximumDate:_maximumDate];
+                                     andMaximumDate:self.maximumDate];
   _yearSelector = yearSelector;
   _yearSelector.delegate = self;
   _yearSelector.hidden = YES;
@@ -194,7 +192,7 @@
       [NSMutableDictionary dictionaryWithCapacity:8];
   titleColorsLight[@(MDCalendarCellStateNormal)] = [UIColor darkTextColor];
   titleColorsLight[@(MDCalendarCellStateSelected)] = [UIColor whiteColor];
-  titleColorsLight[@(MDCalendarCellStateDisabled)] = [UIColor clearColor];
+  titleColorsLight[@(MDCalendarCellStateDisabled)] = [UIColor grayColor];
   titleColorsLight[@(MDCalendarCellStatePlaceholder)] = [UIColor clearColor];
   titleColorsLight[@(MDCalendarCellStateToday)] =
       [UIColorHelper colorWithRGBA:@"#009284"];
@@ -206,7 +204,7 @@
       [NSMutableDictionary dictionaryWithCapacity:8];
   titleColorsDark[@(MDCalendarCellStateNormal)] = [UIColor whiteColor];
   titleColorsDark[@(MDCalendarCellStateSelected)] = [UIColor whiteColor];
-  titleColorsDark[@(MDCalendarCellStateDisabled)] = [UIColor clearColor];
+  titleColorsDark[@(MDCalendarCellStateDisabled)] = [UIColor grayColor];
   titleColorsDark[@(MDCalendarCellStatePlaceholder)] = [UIColor clearColor];
   titleColorsDark[@(MDCalendarCellStateToday)] =
       [UIColorHelper colorWithRGBA:@"#80deea"];
@@ -286,7 +284,7 @@
 
 - (NSInteger)numberOfSectionsInCollectionView:
     (UICollectionView *)collectionView {
-  return [_maximumDate mdMonthsFrom:self.minimumDate] + 1;
+  return [self.maximumDate mdMonthsFrom:self.minimumDate] + 1;
 }
 
 - (NSInteger)collectionView:(UICollectionView *)collectionView
@@ -298,6 +296,7 @@
 - (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView
                   cellForItemAtIndexPath:(NSIndexPath *)indexPath {
   if (indexPath.item == 0) {
+    // Display month and year on the first row. (This occupies the entire row)
     UICollectionViewCell *cell =
         [collectionView dequeueReusableCellWithReuseIdentifier:@"month"
                                                   forIndexPath:indexPath];
@@ -320,6 +319,7 @@
 
     return cell;
   } else if (indexPath.item >= 7 && indexPath.item <= 13) {
+    // Item 7-13 is the second row. This displays name of weekday such as "Sun", "Mon" ... "Sat
     UICollectionViewCell *cell =
         [collectionView dequeueReusableCellWithReuseIdentifier:@"week"
                                                   forIndexPath:indexPath];
@@ -353,6 +353,28 @@
     cell.titleLabel.font = _titleFont;
     cell.date = [self dateForIndexPath:indexPath];
     cell.showPlaceholder = _showPlaceholder;
+      
+    // If the cell's date is between Min-Max date, make the cell disable.
+    cell.userInteractionEnabled = YES;
+    if (self.minimumDate != nil) {
+      // Check if cell.date is before the minimum date, if so, disable this cell.
+      NSDate *sd = [[NSCalendarHelper mdSharedCalendar] startOfDayForDate:cell.date];
+      if ([sd compare:self.minimumDate] == NSOrderedAscending) {
+          cell.userInteractionEnabled = NO;
+      }
+    }
+
+    if (self.maximumDate != nil) {
+      // Check if cell.date is beyond the maximum date, if so, disable this cell.
+      NSDate *maxDayPlus1 = [NSDate dateWithTimeInterval:(24 * 60 * 60) sinceDate:self.maximumDate];
+      NSDate *startOfInvalidRange = [[NSCalendarHelper mdSharedCalendar] startOfDayForDate:maxDayPlus1];
+      if ([cell.date compare:startOfInvalidRange] != NSOrderedAscending) {
+          cell.userInteractionEnabled = NO;
+      }
+    }
+    
+    [cell configureCell];
+      
     return cell;
   }
 }
@@ -414,10 +436,11 @@
   CGFloat scrollOffset = MAX(scrollView.contentOffset.x / scrollView.mdWidth,
                              scrollView.contentOffset.y / scrollView.mdHeight);
 
-  NSDate *currentMonth =
-      [self.minimumDate mdDateByAddingMonths:round(scrollOffset)];
-  if (![_currentMonth mdIsEqualToDateForMonth:currentMonth]) {
-    _currentMonth = [currentMonth copy];
+  // Find the current scrolling position's month (The month displaying on screen)
+  NSDate *scrollingMonth = [self.minimumDate mdDateByAddingMonths:round(scrollOffset)];
+    
+  if (![_currentMonth mdIsEqualToDateForMonth:scrollingMonth]) {
+    _currentMonth = [scrollingMonth copy];
     //[self currentMonthDidChange];
   }
 }
@@ -434,11 +457,18 @@
 
 - (void)setMinimumDate:(NSDate *)minimumDate;
 {
-  NSDate *date =
-      [[NSCalendarHelper mdSharedCalendar] startOfDayForDate:minimumDate];
+  NSDate *date = [[NSCalendarHelper mdSharedCalendar] startOfDayForDate:minimumDate];
   _minimumDate = date;
   self.yearSelector.minimumDate = date;
   [self.collectionView reloadData];
+}
+
+- (void)setMaximumDate:(NSDate *)maximumDate;
+{
+    NSDate *date = [[NSCalendarHelper mdSharedCalendar] startOfDayForDate:maximumDate];
+    _maximumDate = date;
+    self.yearSelector.maximumDate = date;
+    [self.collectionView reloadData];
 }
 
 - (void)setSelectedDate:(NSDate *)selectedDate {
@@ -535,8 +565,12 @@
 }
 
 - (BOOL)shouldSelectDate:(NSDate *)date {
-  BOOL result =
-      (date.timeIntervalSince1970 >= self.minimumDate.timeIntervalSince1970);
+  BOOL result = (date.timeIntervalSince1970 >= self.minimumDate.timeIntervalSince1970);
+    if (self.maximumDate != nil) {
+      NSDate *maxDatePlus1 = [NSDate dateWithTimeInterval:(24 * 60 * 60) sinceDate:self.maximumDate];
+      NSDate *openEndMaxDate = [[NSCalendarHelper mdSharedCalendar] startOfDayForDate:maxDatePlus1];
+      result = result && (date.timeIntervalSince1970 < openEndMaxDate.timeIntervalSince1970);
+    }
   return result;
 }
 
