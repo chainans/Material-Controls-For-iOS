@@ -28,7 +28,7 @@
   static id instance;
   static dispatch_once_t onceToken;
   dispatch_once(&onceToken, ^{
-    instance = [NSCalendar currentCalendar];
+    instance = [NSCalendar calendarWithIdentifier:NSGregorianCalendar];
   });
   return instance;
 }
