@@ -29,8 +29,9 @@
 #import "MDCalendar.h"
 #import "MDCalendarDateHeader.h"
 
-#define kCalendarHeaderHeight                                                  \
-  (([[UIScreen mainScreen] bounds].size.width > 320) ? 190 : 160)
+#define kCalendarHeaderHeight   74      // HACK
+//  (([[UIScreen mainScreen] bounds].size.width > 320) ? 190 : 160)
+#define kDHTimePickerHeight   100      // HACK
 #define kCalendarActionBarHeight 50
 
 @interface MDDatePickerDialog ()
@@ -69,19 +70,39 @@
         setFrame:CGRectMake(hSpacing, vSpacing, self.mdWidth - 2 * hSpacing,
                             self.mdHeight - 2 * vSpacing)];
 
-    _header = [[MDCalendarDateHeader alloc]
-        initWithFrame:CGRectMake(0, 0, popupHolder.mdWidth,
-                                 kCalendarHeaderHeight)];
-    [popupHolder addSubview:_header];
-
-    MDCalendar *calendar = [[MDCalendar alloc]
-        initWithFrame:CGRectMake(0, kCalendarHeaderHeight, popupHolder.mdWidth,
-                                 popupHolder.mdHeight - kCalendarHeaderHeight -
-                                     kCalendarActionBarHeight)];
-    calendar.dateHeader = _header;
-    [popupHolder addSubview:calendar];
-    self.calendar = calendar;
-    self.calendar.theme = MDCalendarThemeLight;
+    // TODO: Not easy to migrate to auto-layout here. Should change the whole things here to autolayout.
+//      if (COMPACT_HEADER_HEIGHT) {
+//          _header = [[MDCalendarDateHeader alloc] init];
+//          _header.translatesAutoresizingMaskIntoConstraints = NO;
+//          [popupHolder addSubview:_header];
+//          [popupHolder addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[_header]|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(_header)]];
+//          [popupHolder addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[_header]" options:0 metrics:nil views:NSDictionaryOfVariableBindings(_header)]];
+//          [popupHolder layoutSubviews];
+//          
+//          MDCalendar *calendar = [[MDCalendar alloc] init];
+//          calendar.translatesAutoresizingMaskIntoConstraints = NO;
+//          calendar.dateHeader = _header;
+//          [popupHolder addSubview:calendar];
+//          self.calendar = calendar;
+//          self.calendar.theme = MDCalendarThemeLight;
+//          
+//          NSLog(@">>> %d", _header.bounds.size.height);
+//          int hackyHeight = popupHolder.mdHeight - _header.bounds.size.height - kCalendarActionBarHeight;
+//          [popupHolder addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[calendar]|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(calendar)]];
+//          [popupHolder addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:[NSString stringWithFormat:@"V:|[_header][calendar(%d)]", hackyHeight] options:0 metrics:nil views:NSDictionaryOfVariableBindings(_header, calendar)]];
+//      }
+//      else {
+          _header = [[MDCalendarDateHeader alloc] initWithFrame:CGRectMake(0, 0, popupHolder.mdWidth, kCalendarHeaderHeight)];
+          [popupHolder addSubview:_header];
+          
+          MDCalendar *calendar = [[MDCalendar alloc]
+                                  initWithFrame:CGRectMake(0, kCalendarHeaderHeight, popupHolder.mdWidth,
+                                                           popupHolder.mdHeight - kCalendarHeaderHeight - kDHTimePickerHeight - kCalendarActionBarHeight)];
+          calendar.dateHeader = _header;
+          [popupHolder addSubview:calendar];
+          self.calendar = calendar;
+          self.calendar.theme = MDCalendarThemeLight;
+//      }
 
     [self setBackgroundColor:self.calendar.backgroundColor];
 

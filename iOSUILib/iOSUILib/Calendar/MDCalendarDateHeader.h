@@ -23,6 +23,8 @@
 #ifndef iOSUILib_MDCalendarHeader_h
 #define iOSUILib_MDCalendarHeader_h
 
+#define COMPACT_HEADER_HEIGHT      YES
+
 #import <UIKit/UIKit.h>
 
 @protocol MDCalendarDateHeaderDelegate

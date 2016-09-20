@@ -40,6 +40,10 @@
 @synthesize monthFormat = _monthFormat;
 @synthesize date = _date;
 
+- (id)init {
+    return [self initWithFrame:CGRectZero];
+}
+
 - (instancetype)initWithFrame:(CGRect)frame {
   self = [super initWithFrame:frame];
   if (self) {
@@ -50,18 +54,18 @@
 
     _labelDayName = [[UILabel alloc] initWithFrame:CGRectZero];
     _labelDayName.textAlignment = NSTextAlignmentCenter;
-    _labelDayName.font = [UIFontHelper robotoFontOfSize:13];
+    _labelDayName.font = [UIFontHelper robotoFontOfSize:(COMPACT_HEADER_HEIGHT ? 13 : 13)];
     [_labelDayName setTextColor:_textColor];
     [_labelDayName setBackgroundColor:_headerColor];
 
     _labelMonthName = [[UILabel alloc] initWithFrame:CGRectZero];
     _labelMonthName.textAlignment = NSTextAlignmentCenter;
-    _labelMonthName.font = [UIFontHelper robotoFontOfSize:25];
+    _labelMonthName.font = [UIFontHelper robotoFontOfSize:(COMPACT_HEADER_HEIGHT ? 18 : 25)];
     [_labelMonthName setTextColor:_textColor];
     [_labelMonthName setBackgroundColor:[UIColor clearColor]];
 
-    fontDatePortrait = [UIFontHelper robotoFontOfSize:55];
-    fontDateLandscape = [UIFontHelper robotoFontOfSize:75];
+    fontDatePortrait = [UIFontHelper robotoFontOfSize:(COMPACT_HEADER_HEIGHT ? 18 : 55)];
+    fontDateLandscape = [UIFontHelper robotoFontOfSize:(COMPACT_HEADER_HEIGHT ? 18 : 75)];
 
     _labelDate = [[UILabel alloc] initWithFrame:CGRectZero];
     _labelDate.textAlignment = NSTextAlignmentCenter;
@@ -71,13 +75,16 @@
 
     _labelYear = [[UILabel alloc] initWithFrame:CGRectZero];
     _labelYear.textAlignment = NSTextAlignmentCenter;
-    _labelYear.font = [UIFontHelper robotoFontOfSize:25];
+    _labelYear.font = [UIFontHelper robotoFontOfSize:(COMPACT_HEADER_HEIGHT ? 18 : 25)];
     [_labelYear setBackgroundColor:[UIColor clearColor]];
     _labelYear.textColor = [_textColor colorWithAlphaComponent:0.5];
 
     _monthFormat = MDCalendarMonthSymbolsFormatShortUppercase;
 
     _labelDayName.translatesAutoresizingMaskIntoConstraints = NO;
+    if (COMPACT_HEADER_HEIGHT) {
+      [_labelDayName setContentCompressionResistancePriority:100 forAxis:UILayoutConstraintAxisVertical];
+    }
     _labelMonthName.translatesAutoresizingMaskIntoConstraints = NO;
     _labelDate.translatesAutoresizingMaskIntoConstraints = NO;
     _labelYear.translatesAutoresizingMaskIntoConstraints = NO;
@@ -116,92 +123,116 @@
     } else {
       [self setLayoutMargins:UIEdgeInsetsZero];
     }
-    //    viewsDictionary = @{
-    //      @"labelDayName" : self.labelDayName,
-    //      @"labelMonthName" : self.labelMonthName,
-    //      @"labelDate" : self.labelDate,
-    //      @"labelYear" : self.labelYear
-    //    };
 
-    viewsDictionary = NSDictionaryOfVariableBindings(
-        _labelDayName, _labelMonthName, _labelDate, _labelYear);
+    viewsDictionary = NSDictionaryOfVariableBindings(_labelDayName, _labelMonthName, _labelDate, _labelYear);
 
-    NSArray *constraintHorizontalString = [NSArray
-        arrayWithObjects:@"H:|[_labelDayName]|", @"H:|-[_labelMonthName]-|",
-                         @"H:|-[_labelDate]-|", @"H:|-[_labelYear]-|", nil];
-
-    NSArray *constraint_H;
-    for (int i = 0; i < [constraintHorizontalString count]; i++) {
-      constraint_H = [NSLayoutConstraint
-          constraintsWithVisualFormat:[constraintHorizontalString
-                                          objectAtIndex:i]
-                              options:0
-                              metrics:nil
-                                views:viewsDictionary];
-      [self addConstraints:constraint_H];
+    if (COMPACT_HEADER_HEIGHT) {
+        // Make it 1-row and we won't rely on layoutSubview as I don't need landscape layout
+        [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[_labelDayName]|"
+                                                                     options:0
+                                                                     metrics:nil
+                                                                       views:viewsDictionary]];
+        [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:[_labelDate]-[_labelMonthName]-[_labelYear]"
+                                                                     options:0
+                                                                     metrics:nil
+                                                                       views:viewsDictionary]];
+        // Align x-center of weekday name and month
+        [self addConstraints:@[[NSLayoutConstraint constraintWithItem:_labelDayName attribute:NSLayoutAttributeCenterX
+                                                            relatedBy:NSLayoutRelationEqual
+                                                               toItem:_labelMonthName attribute:NSLayoutAttributeCenterX
+                                                           multiplier:1.0 constant:0.0]]];
+        
+        // Add vertical constraints
+        [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[_labelDayName(20)]-12-[_labelMonthName(30)]-12-|"
+                                                                     options:0
+                                                                     metrics:nil
+                                                                       views:NSDictionaryOfVariableBindings(_labelDayName, _labelMonthName)]];
+        
+        // Align y-center of day-month-year
+        [self addConstraints:@[[NSLayoutConstraint constraintWithItem:_labelDate attribute:NSLayoutAttributeCenterY
+                                                            relatedBy:NSLayoutRelationEqual
+                                                               toItem:_labelMonthName attribute:NSLayoutAttributeCenterY
+                                                           multiplier:1.0 constant:0.0]]];
+        
+        [self addConstraints:@[[NSLayoutConstraint constraintWithItem:_labelYear attribute:NSLayoutAttributeCenterY
+                                                            relatedBy:NSLayoutRelationEqual
+                                                               toItem:_labelMonthName attribute:NSLayoutAttributeCenterY
+                                                           multiplier:1.0 constant:0.0]]];
     }
+    else {
+        NSArray *constraintHorizontalString = [NSArray
+                                               arrayWithObjects:@"H:|[_labelDayName]|", @"H:|-[_labelMonthName]-|",
+                                               @"H:|-[_labelDate]-|", @"H:|-[_labelYear]-|", nil];
+        NSArray *constraint_H;
+        for (int i = 0; i < [constraintHorizontalString count]; i++) {
+            constraint_H = [NSLayoutConstraint constraintsWithVisualFormat:[constraintHorizontalString objectAtIndex:i]
+                                                                   options:0
+                                                                   metrics:nil
+                                                                     views:viewsDictionary];
+            [self addConstraints:constraint_H];
+        }
+    }
+
   };
   [self layoutSubviews];
   return self;
 }
 
 - (void)layoutSubviews {
-  UIInterfaceOrientation orientation =
-      [[UIApplication sharedApplication] statusBarOrientation];
+    if (!COMPACT_HEADER_HEIGHT) {
+        UIInterfaceOrientation orientation = [[UIApplication sharedApplication] statusBarOrientation];
 
-  switch (orientation) {
-  case UIInterfaceOrientationPortrait:
-  case UIInterfaceOrientationPortraitUpsideDown: {
-    // load the portrait view
-    _labelDate.font = fontDatePortrait;
-  }
+        switch (orientation) {
+        case UIInterfaceOrientationPortrait:
+        case UIInterfaceOrientationPortraitUpsideDown: {
+        // load the portrait view
+        _labelDate.font = fontDatePortrait;
+        }
 
-  break;
-  case UIInterfaceOrientationLandscapeLeft:
-  case UIInterfaceOrientationLandscapeRight: {
-    // load the landscape view
-    _labelDate.font = fontDateLandscape;
-  } break;
-  case UIInterfaceOrientationUnknown:
-    break;
-  }
+        break;
+        case UIInterfaceOrientationLandscapeLeft:
+        case UIInterfaceOrientationLandscapeRight: {
+        // load the landscape view
+        _labelDate.font = fontDateLandscape;
+        } break;
+        case UIInterfaceOrientationUnknown:
+        break;
+        }
 
-  int h = self.mdHeight - _labelDayName.font.lineHeight * 2;
-  int spacing = (h - _labelMonthName.font.lineHeight -
-                 _labelDate.font.lineHeight - _labelYear.font.lineHeight) /
-                4;
-  if (!constraintPortrait) {
-    constraintPortrait = [[NSMutableArray alloc] init];
-    spacing = 8;
-  } else {
-    [self removeConstraints:constraintPortrait];
-  }
+        int h = self.mdHeight - _labelDayName.font.lineHeight * 2;
+        int spacing = (h - _labelMonthName.font.lineHeight - _labelDate.font.lineHeight - _labelYear.font.lineHeight) / 4;
+        if (!constraintPortrait) {
+        constraintPortrait = [[NSMutableArray alloc] init];
+        spacing = 8;
+        } else {
+        [self removeConstraints:constraintPortrait];
+        }
 
-  [constraintPortrait removeAllObjects];
-  metrics = @{ @"spacing" : @(spacing) };
-  NSArray *constraintVerticalString = [NSArray
-      arrayWithObjects:
-          [NSString
-              stringWithFormat:@"V:|[_labelDayName(%i)]-spacing-["
-                               @"_labelMonthName]-spacing-[_labelDate(%i)]",
-                               (int)ceil(_labelDayName.font.lineHeight * 2),
-                               (int)ceil(_labelDate.font.lineHeight)],
-          [NSString stringWithFormat:@"V:[_labelYear(%i)]-spacing-|",
-                                     (int)ceil(_labelYear.font.lineHeight)],
-          nil];
+        [constraintPortrait removeAllObjects];
+        metrics = @{ @"spacing" : @(spacing) };
+        NSArray *constraintVerticalString = [NSArray arrayWithObjects:[NSString
+                  stringWithFormat:@"V:|[_labelDayName(%i)]-spacing-["
+                                   @"_labelMonthName]-spacing-[_labelDate(%i)]",
+                                   (int)ceil(_labelDayName.font.lineHeight * 2),
+                                   (int)ceil(_labelDate.font.lineHeight)],
+              [NSString stringWithFormat:@"V:[_labelYear(%i)]-spacing-|",
+                                         (int)ceil(_labelYear.font.lineHeight)],
+              nil];
 
-  NSArray *constraint_V;
-  for (int i = 0; i < [constraintVerticalString count]; i++) {
-    constraint_V = [NSLayoutConstraint
-        constraintsWithVisualFormat:[constraintVerticalString objectAtIndex:i]
-                            options:0
-                            metrics:metrics
-                              views:viewsDictionary];
-    [constraintPortrait addObjectsFromArray:constraint_V];
-  }
+        NSArray *constraint_V;
+        for (int i = 0; i < [constraintVerticalString count]; i++) {
+        constraint_V = [NSLayoutConstraint
+            constraintsWithVisualFormat:[constraintVerticalString objectAtIndex:i]
+                                options:0
+                                metrics:metrics
+                                  views:viewsDictionary];
+        [constraintPortrait addObjectsFromArray:constraint_V];
+        }
 
-  [self addConstraints:constraintPortrait];
-  [super layoutSubviews];
+        [self addConstraints:constraintPortrait];
+    }
+    
+    [super layoutSubviews];
 }
 
 - (void)setTheme:(MDCalendarTheme)theme {
