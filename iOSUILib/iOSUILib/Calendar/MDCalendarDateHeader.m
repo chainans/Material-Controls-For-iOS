@@ -77,7 +77,8 @@
     _labelYear.textAlignment = NSTextAlignmentCenter;
     _labelYear.font = [UIFontHelper robotoFontOfSize:(COMPACT_HEADER_HEIGHT ? 18 : 25)];
     [_labelYear setBackgroundColor:[UIColor clearColor]];
-    _labelYear.textColor = [_textColor colorWithAlphaComponent:0.5];
+//      _labelYear.textColor = [_textColor colorWithAlphaComponent:0.5];
+      _labelYear.textColor = _textColor;
 
     _monthFormat = MDCalendarMonthSymbolsFormatShortUppercase;
 
@@ -91,9 +92,9 @@
 
     [self setBackgroundColor:_headerBackgroundColor];
 
-    [self addSubview:_labelDayName];
+//    [self addSubview:_labelDayName];
     [self addSubview:_labelMonthName];
-    [self addSubview:_labelDate];
+//    [self addSubview:_labelDate];
     [self addSubview:_labelYear];
 
     // label interaction
@@ -123,36 +124,50 @@
     } else {
       [self setLayoutMargins:UIEdgeInsetsZero];
     }
-
-    viewsDictionary = NSDictionaryOfVariableBindings(_labelDayName, _labelMonthName, _labelDate, _labelYear);
+      
+      viewsDictionary = NSDictionaryOfVariableBindings(_labelMonthName, _labelYear);
+//    viewsDictionary = NSDictionaryOfVariableBindings(_labelDayName, _labelMonthName, _labelDate, _labelYear);
 
     if (COMPACT_HEADER_HEIGHT) {
         // Make it 1-row and we won't rely on layoutSubview as I don't need landscape layout
-        [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[_labelDayName]|"
-                                                                     options:0
-                                                                     metrics:nil
-                                                                       views:viewsDictionary]];
-        [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:[_labelDate]-[_labelMonthName]-[_labelYear]"
+//        [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[_labelDayName]|"
+//                                                                     options:0
+//                                                                     metrics:nil
+//                                                                       views:viewsDictionary]];
+//        [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:[_labelDate]-[_labelMonthName]-[_labelYear]"
+//                                                                     options:0
+//                                                                     metrics:nil
+//                                                                       views:viewsDictionary]];
+        [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:[_labelMonthName]-[_labelYear]"
                                                                      options:0
                                                                      metrics:nil
                                                                        views:viewsDictionary]];
         // Align x-center of weekday name and month
-        [self addConstraints:@[[NSLayoutConstraint constraintWithItem:_labelDayName attribute:NSLayoutAttributeCenterX
+//        [self addConstraints:@[[NSLayoutConstraint constraintWithItem:_labelDayName attribute:NSLayoutAttributeCenterX
+//                                                            relatedBy:NSLayoutRelationEqual
+//                                                               toItem:_labelMonthName attribute:NSLayoutAttributeCenterX
+//                                                           multiplier:1.0 constant:0.0]]];
+        [self addConstraints:@[[NSLayoutConstraint constraintWithItem:self attribute:NSLayoutAttributeCenterX
                                                             relatedBy:NSLayoutRelationEqual
-                                                               toItem:_labelMonthName attribute:NSLayoutAttributeCenterX
+                                                               toItem:_labelMonthName attribute:NSLayoutAttributeRight
                                                            multiplier:1.0 constant:0.0]]];
         
         // Add vertical constraints
-        [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[_labelDayName(20)]-12-[_labelMonthName(30)]-12-|"
+        // If you change height, you also need to change in MDDatePickerDialog.m for value kCalendarHeaderHeight to match total DateHeader's height.
+//        [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[_labelDayName(20)]-12-[_labelMonthName(30)]-12-|"
+//                                                                     options:0
+//                                                                     metrics:nil
+//                                                                       views:NSDictionaryOfVariableBindings(_labelDayName, _labelMonthName)]];
+        [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|-8-[_labelMonthName(30)]-12-|"
                                                                      options:0
                                                                      metrics:nil
-                                                                       views:NSDictionaryOfVariableBindings(_labelDayName, _labelMonthName)]];
+                                                                       views:NSDictionaryOfVariableBindings(_labelMonthName)]];
         
         // Align y-center of day-month-year
-        [self addConstraints:@[[NSLayoutConstraint constraintWithItem:_labelDate attribute:NSLayoutAttributeCenterY
-                                                            relatedBy:NSLayoutRelationEqual
-                                                               toItem:_labelMonthName attribute:NSLayoutAttributeCenterY
-                                                           multiplier:1.0 constant:0.0]]];
+//        [self addConstraints:@[[NSLayoutConstraint constraintWithItem:_labelDate attribute:NSLayoutAttributeCenterY
+//                                                            relatedBy:NSLayoutRelationEqual
+//                                                               toItem:_labelMonthName attribute:NSLayoutAttributeCenterY
+//                                                           multiplier:1.0 constant:0.0]]];
         
         [self addConstraints:@[[NSLayoutConstraint constraintWithItem:_labelYear attribute:NSLayoutAttributeCenterY
                                                             relatedBy:NSLayoutRelationEqual

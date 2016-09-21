@@ -29,7 +29,7 @@
 #import "MDCalendar.h"
 #import "MDCalendarDateHeader.h"
 
-#define kCalendarHeaderHeight   74      // HACK
+#define kCalendarHeaderHeight   42      // HACK
 //  (([[UIScreen mainScreen] bounds].size.width > 320) ? 190 : 160)
 #define kDHTimePickerHeight   100      // HACK
 #define kCalendarActionBarHeight 50
@@ -69,40 +69,17 @@
     [popupHolder
         setFrame:CGRectMake(hSpacing, vSpacing, self.mdWidth - 2 * hSpacing,
                             self.mdHeight - 2 * vSpacing)];
-
-    // TODO: Not easy to migrate to auto-layout here. Should change the whole things here to autolayout.
-//      if (COMPACT_HEADER_HEIGHT) {
-//          _header = [[MDCalendarDateHeader alloc] init];
-//          _header.translatesAutoresizingMaskIntoConstraints = NO;
-//          [popupHolder addSubview:_header];
-//          [popupHolder addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[_header]|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(_header)]];
-//          [popupHolder addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[_header]" options:0 metrics:nil views:NSDictionaryOfVariableBindings(_header)]];
-//          [popupHolder layoutSubviews];
-//          
-//          MDCalendar *calendar = [[MDCalendar alloc] init];
-//          calendar.translatesAutoresizingMaskIntoConstraints = NO;
-//          calendar.dateHeader = _header;
-//          [popupHolder addSubview:calendar];
-//          self.calendar = calendar;
-//          self.calendar.theme = MDCalendarThemeLight;
-//          
-//          NSLog(@">>> %d", _header.bounds.size.height);
-//          int hackyHeight = popupHolder.mdHeight - _header.bounds.size.height - kCalendarActionBarHeight;
-//          [popupHolder addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[calendar]|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(calendar)]];
-//          [popupHolder addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:[NSString stringWithFormat:@"V:|[_header][calendar(%d)]", hackyHeight] options:0 metrics:nil views:NSDictionaryOfVariableBindings(_header, calendar)]];
-//      }
-//      else {
-          _header = [[MDCalendarDateHeader alloc] initWithFrame:CGRectMake(0, 0, popupHolder.mdWidth, kCalendarHeaderHeight)];
-          [popupHolder addSubview:_header];
-          
-          MDCalendar *calendar = [[MDCalendar alloc]
-                                  initWithFrame:CGRectMake(0, kCalendarHeaderHeight, popupHolder.mdWidth,
-                                                           popupHolder.mdHeight - kCalendarHeaderHeight - kDHTimePickerHeight - kCalendarActionBarHeight)];
-          calendar.dateHeader = _header;
-          [popupHolder addSubview:calendar];
-          self.calendar = calendar;
-          self.calendar.theme = MDCalendarThemeLight;
-//      }
+      
+      _header = [[MDCalendarDateHeader alloc] initWithFrame:CGRectMake(0, 0, popupHolder.mdWidth, kCalendarHeaderHeight)];
+      [popupHolder addSubview:_header];
+      
+      MDCalendar *calendar = [[MDCalendar alloc]
+                              initWithFrame:CGRectMake(0, kCalendarHeaderHeight, popupHolder.mdWidth,
+                                                       popupHolder.mdHeight - kCalendarHeaderHeight - kDHTimePickerHeight - kCalendarActionBarHeight)];
+      calendar.dateHeader = _header;
+      [popupHolder addSubview:calendar];
+      self.calendar = calendar;
+      self.calendar.theme = MDCalendarThemeLight;
 
     [self setBackgroundColor:self.calendar.backgroundColor];
 
@@ -162,7 +139,9 @@
         addObserver:self
            selector:@selector(deviceOrientationDidChange:)
                name:UIDeviceOrientationDidChangeNotification
-             object:nil];
+     object:nil];
+      
+      constraintsDidInstalled = false;
   }
   return self;
 }
@@ -195,71 +174,126 @@
   self.hidden = YES;
 }
 
-- (void)layoutSubviews {
-  [super layoutSubviews];
+//- (void)layoutSubviews {
+//  [super layoutSubviews];
+//
+//  UIView *view = [MDDeviceHelper getMainView];
+//  int vSpacing = view.bounds.size.height * 0.05;
+//  int hSpacing = view.bounds.size.width * 0.1;
+//  if ([[UIScreen mainScreen] bounds].size.width > 320) {
+//
+//  } else {
+//    vSpacing /= 2;
+//    hSpacing /= 2;
+//  }
+//
+//  [popupHolder
+//      setFrame:CGRectMake(hSpacing, vSpacing, self.mdWidth - 2 * hSpacing,
+//                          self.mdHeight - 2 * vSpacing)];
+//
+//  UIInterfaceOrientation orientation =
+//      [[UIApplication sharedApplication] statusBarOrientation];
+//  switch (orientation) {
+//  case UIInterfaceOrientationPortrait:
+//  case UIInterfaceOrientationPortraitUpsideDown: {
+//    // load the portrait view
+//    _header.frame =
+//        CGRectMake(0, 0, popupHolder.mdWidth, kCalendarHeaderHeight);
+//    _calendar.frame = CGRectMake(0, kCalendarHeaderHeight, popupHolder.mdWidth,
+//                                 popupHolder.mdHeight - kCalendarHeaderHeight -
+//                                     kCalendarActionBarHeight);
+//  }
+//
+//  break;
+//  case UIInterfaceOrientationLandscapeLeft:
+//  case UIInterfaceOrientationLandscapeRight: {
+//    if (view.bounds.size.height > view.bounds.size.width) {
+//      // http://stackoverflow.com/questions/26037472/uiwindow-with-wrong-size-when-using-landscape-orientation
+//      self.frame =
+//          CGRectMake(0, 0, view.bounds.size.height, view.bounds.size.width);
+//      [popupHolder setFrame:CGRectMake(hSpacing, vSpacing,
+//                                       view.bounds.size.height - 2 * hSpacing,
+//                                       view.bounds.size.width - 2 * vSpacing)];
+//    }
+//    // load the landscape view
+//    float headerWidthRatio = 0.5;
+//    if ([[UIScreen mainScreen] bounds].size.width <= 320)
+//      headerWidthRatio = 0.4;
+//    _header.frame = CGRectMake(0, 0, popupHolder.mdWidth * headerWidthRatio,
+//                               popupHolder.mdHeight - kCalendarActionBarHeight);
+//    _calendar.frame =
+//        CGRectMake(popupHolder.mdWidth * headerWidthRatio, 0,
+//                   popupHolder.mdWidth * (1.0 - headerWidthRatio),
+//                   popupHolder.mdHeight - kCalendarActionBarHeight);
+//  } break;
+//  case UIInterfaceOrientationUnknown:
+//    break;
+//  }
+//
+//  _buttonCancel.mdLeft = popupHolder.mdWidth - 4 * kCalendarActionBarHeight;
+//  _buttonCancel.mdTop = popupHolder.mdHeight - kCalendarActionBarHeight;
+//  _buttonOk.mdLeft = popupHolder.mdWidth - 2 * kCalendarActionBarHeight;
+//  _buttonOk.mdTop = popupHolder.mdHeight - kCalendarActionBarHeight;
+//
+//  [popupHolder setBackgroundColor:_calendar.backgroundColor];
+//}
 
-  UIView *view = [MDDeviceHelper getMainView];
-  int vSpacing = view.bounds.size.height * 0.05;
-  int hSpacing = view.bounds.size.width * 0.1;
-  if ([[UIScreen mainScreen] bounds].size.width > 320) {
-
-  } else {
-    vSpacing /= 2;
-    hSpacing /= 2;
-  }
-
-  [popupHolder
-      setFrame:CGRectMake(hSpacing, vSpacing, self.mdWidth - 2 * hSpacing,
-                          self.mdHeight - 2 * vSpacing)];
-
-  UIInterfaceOrientation orientation =
-      [[UIApplication sharedApplication] statusBarOrientation];
-  switch (orientation) {
-  case UIInterfaceOrientationPortrait:
-  case UIInterfaceOrientationPortraitUpsideDown: {
-    // load the portrait view
-    _header.frame =
-        CGRectMake(0, 0, popupHolder.mdWidth, kCalendarHeaderHeight);
-    _calendar.frame = CGRectMake(0, kCalendarHeaderHeight, popupHolder.mdWidth,
-                                 popupHolder.mdHeight - kCalendarHeaderHeight -
-                                     kCalendarActionBarHeight);
-  }
-
-  break;
-  case UIInterfaceOrientationLandscapeLeft:
-  case UIInterfaceOrientationLandscapeRight: {
-    if (view.bounds.size.height > view.bounds.size.width) {
-      // http://stackoverflow.com/questions/26037472/uiwindow-with-wrong-size-when-using-landscape-orientation
-      self.frame =
-          CGRectMake(0, 0, view.bounds.size.height, view.bounds.size.width);
-      [popupHolder setFrame:CGRectMake(hSpacing, vSpacing,
-                                       view.bounds.size.height - 2 * hSpacing,
-                                       view.bounds.size.width - 2 * vSpacing)];
+- (void)customShow {
+    [popupHolder setBackgroundColor:self.calendar.backgroundColor];
+    
+    UIView *rootView = [MDDeviceHelper getMainView];
+    [rootView addSubview:self];
+    if (!constraintsDidInstalled) {
+        constraintsDidInstalled = YES;
+        
+        UIView *child = self;
+        child.translatesAutoresizingMaskIntoConstraints = NO;
+        [rootView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[child]|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(child)]];
+        [rootView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[child]|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(child)]];
+        
+        // Position popupHolder
+        [self addSubview:popupHolder];
+        popupHolder.translatesAutoresizingMaskIntoConstraints = NO;
+        [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|-20-[popupHolder]-20-|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(popupHolder)]];
+        [self addConstraints:@[[NSLayoutConstraint constraintWithItem:self attribute:NSLayoutAttributeCenterY
+                                                            relatedBy:NSLayoutRelationEqual
+                                                               toItem:popupHolder attribute:NSLayoutAttributeCenterY
+                                                           multiplier:1.0 constant:0.0]]];
+        
+        
+        // Position the calendar view
+        _header.translatesAutoresizingMaskIntoConstraints = NO;
+        [popupHolder addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[_header]|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(_header)]];
+        [popupHolder addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[_header]" options:0 metrics:nil views:NSDictionaryOfVariableBindings(_header)]];
+        
+        _calendar.translatesAutoresizingMaskIntoConstraints = NO;
+        [popupHolder addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[_calendar]|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(_calendar)]];
+        [popupHolder addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[_header][_calendar]" options:0 metrics:nil views:NSDictionaryOfVariableBindings(_header, _calendar)]];
+        
+        // Add custom view just under calendar area (depending if we have footer view for calendar)
+        if (_calendarFooterView != nil) {
+            [popupHolder addSubview:_calendarFooterView];
+            _calendarFooterView.translatesAutoresizingMaskIntoConstraints = NO;
+            [popupHolder addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[_calendarFooterView]|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(_calendarFooterView)]];
+            [popupHolder addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:[_calendar]->=8-[_calendarFooterView]->=8-[_buttonOk]" options:0 metrics:nil views:NSDictionaryOfVariableBindings(_calendar, _calendarFooterView, _buttonOk)]];
+        }
+        else {
+            [popupHolder addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:[_calendar][_buttonOk]" options:0 metrics:nil views:NSDictionaryOfVariableBindings(_calendar, _buttonOk)]];
+        }
+        
+        // Position OK and Cancel buttons
+        _buttonOk.translatesAutoresizingMaskIntoConstraints = NO;
+        _buttonCancel.translatesAutoresizingMaskIntoConstraints = NO;
+        [popupHolder addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:[_buttonOk]-8-[_buttonCancel]-8-|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(_buttonOk, _buttonCancel)]];
+        [popupHolder addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:[_buttonOk]-12-|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(_buttonOk)]];
+        [popupHolder addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:[_buttonCancel]-12-|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(_buttonCancel)]];
     }
-    // load the landscape view
-    float headerWidthRatio = 0.5;
-    if ([[UIScreen mainScreen] bounds].size.width <= 320)
-      headerWidthRatio = 0.4;
-    _header.frame = CGRectMake(0, 0, popupHolder.mdWidth * headerWidthRatio,
-                               popupHolder.mdHeight - kCalendarActionBarHeight);
-    _calendar.frame =
-        CGRectMake(popupHolder.mdWidth * headerWidthRatio, 0,
-                   popupHolder.mdWidth * (1.0 - headerWidthRatio),
-                   popupHolder.mdHeight - kCalendarActionBarHeight);
-  } break;
-  case UIInterfaceOrientationUnknown:
-    break;
-  }
-
-  _buttonCancel.mdLeft = popupHolder.mdWidth - 4 * kCalendarActionBarHeight;
-  _buttonCancel.mdTop = popupHolder.mdHeight - kCalendarActionBarHeight;
-  _buttonOk.mdLeft = popupHolder.mdWidth - 2 * kCalendarActionBarHeight;
-  _buttonOk.mdTop = popupHolder.mdHeight - kCalendarActionBarHeight;
-
-  [popupHolder setBackgroundColor:_calendar.backgroundColor];
+    
+    self.hidden = NO;
 }
 
 - (void)show {
+    
   [self addSelfToMainWindow];
   self.hidden = NO;
 }
