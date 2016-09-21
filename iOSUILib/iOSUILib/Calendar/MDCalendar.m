@@ -136,7 +136,7 @@
     collectionView.translatesAutoresizingMaskIntoConstraints = NO;
     [collectionView setContentCompressionResistancePriority:100 forAxis:UILayoutConstraintAxisVertical];
     [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[collectionView]|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(collectionView)]];
-    [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[collectionView(350@750)]|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(collectionView)]];
+    [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[collectionView(>=250@750)]|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(collectionView)]];
     
   [collectionView
       addObserver:self
