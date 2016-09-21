@@ -158,7 +158,7 @@
 //                                                                     options:0
 //                                                                     metrics:nil
 //                                                                       views:NSDictionaryOfVariableBindings(_labelDayName, _labelMonthName)]];
-        [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|-8-[_labelMonthName(30)]-12-|"
+        [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|-8-[_labelMonthName(24)]-8-|"
                                                                      options:0
                                                                      metrics:nil
                                                                        views:NSDictionaryOfVariableBindings(_labelMonthName)]];

@@ -255,6 +255,7 @@
         [self addSubview:popupHolder];
         popupHolder.translatesAutoresizingMaskIntoConstraints = NO;
         [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|-20-[popupHolder]-20-|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(popupHolder)]];
+        [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|-(>=10)-[popupHolder]-(>=10)-|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(popupHolder)]];
         [self addConstraints:@[[NSLayoutConstraint constraintWithItem:self attribute:NSLayoutAttributeCenterY
                                                             relatedBy:NSLayoutRelationEqual
                                                                toItem:popupHolder attribute:NSLayoutAttributeCenterY
