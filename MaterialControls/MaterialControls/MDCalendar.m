@@ -198,7 +198,7 @@
       [NSMutableDictionary dictionaryWithCapacity:8];
   titleColorsLight[@(MDCalendarCellStateNormal)] = [UIColor darkTextColor];
   titleColorsLight[@(MDCalendarCellStateSelected)] = [UIColor whiteColor];
-  titleColorsLight[@(MDCalendarCellStateDisabled)] = [UIColor grayColor];
+  titleColorsLight[@(MDCalendarCellStateDisabled)] = [UIColor lightGrayColor];
   titleColorsLight[@(MDCalendarCellStatePlaceholder)] = [UIColor clearColor];
   titleColorsLight[@(MDCalendarCellStateToday)] =
       [UIColorHelper colorWithRGBA:@"#009284"];
@@ -357,7 +357,14 @@
     cell.month = [self.minimumDate mdDateByAddingMonths:indexPath.section];
     cell.currentDate = self.currentDate;
     cell.titleLabel.font = _titleFont;
-    cell.date = [self dateForIndexPath:indexPath];
+      NSDate *selDate = [self dateForIndexPath:indexPath];
+      if (cell.month.mdMonth == self.selectedDate.mdMonth && [selDate compare:self.selectedDate] == NSOrderedSame) {
+          cell.selected = YES;
+      }
+      else {
+          cell.selected = NO;
+      }
+    cell.date = selDate;
     cell.showPlaceholder = _showPlaceholder;
       
     // If the cell's date is between Min-Max date, make the cell disable.
