@@ -360,6 +360,9 @@
       NSDate *selDate = [self dateForIndexPath:indexPath];
       if (cell.month.mdMonth == self.selectedDate.mdMonth && [selDate compare:self.selectedDate] == NSOrderedSame) {
           cell.selected = YES;
+          [_collectionView selectItemAtIndexPath:indexPath
+                                        animated:NO
+                                  scrollPosition:UICollectionViewScrollPositionNone];
       }
       else {
           cell.selected = NO;
